@@ -1,28 +1,64 @@
 import numpy as np
+import pygame
+import sys
 
 PLAYER_ONE = 1
 PLAYER_TWO = 2
+ROW_COUNT = 6
+COLUMN_COUNT = 7
+SQUARE_SIZE = 100
 
 
 class ConnectFour:
-    ROW_COUNT = 6
-    COLUMN_COUNT = 7
     board = np.zeros((ROW_COUNT, COLUMN_COUNT))
+    is_won = False
+    draw = False
 
     def __int__(self):
         pass
 
-    def is_game_won(self, player_piece, current_row: int, current_col: int):
-        for i in range(current_row - 1, current_row + 2):
-            for j in range(current_col - 1, current_col + 2):
-                if i in range(len(self.board)) and j in range(len(self.board[i])) and self.board[i][j] == player_piece:
-                    print("hello", player_piece)
-        pass
+    # noinspection PyArgumentList
+    def is_game_won(self, player_piece):
+        # check vertical spaces
+        for x in range(ROW_COUNT - 3):
+            for y in range(COLUMN_COUNT):
+                if self.board[x][y] == player_piece and self.board[x + 1][y] == player_piece and \
+                        self.board[x + 2][y] == player_piece and \
+                        self.board[x + 3][y] == player_piece:
+                    self.is_won = True
+                    return True
 
-    def track_seeds(self, row, column, step):
-        pass
+        # check horizontal spaces
+        for x in range(ROW_COUNT):
+            for y in range(COLUMN_COUNT - 3):
+                if self.board[x][y] == player_piece and self.board[x][y + 1] == player_piece and \
+                        self.board[x][y + 2] == player_piece and \
+                        self.board[x][y + 3] == player_piece:
+                    self.is_won = True
+                    return True
 
+        # check / diagonal spaces
+        for x in range(ROW_COUNT - 3):
+            for y in range(3, COLUMN_COUNT):
+                if self.board[x][y] == player_piece and self.board[x + 1][y - 1] == player_piece and \
+                        self.board[x + 2][y - 2] == player_piece and \
+                        self.board[x + 3][y - 3] == player_piece:
+                    self.is_won = True
+                    return True
 
+        # check \ diagonal spaces
+        for x in range(ROW_COUNT - 3):
+            for y in range(COLUMN_COUNT - 3):
+                if self.board[x][y] == player_piece and self.board[x + 1][y + 1] == player_piece and self.board[x + 2][
+                    y + 2] == player_piece and \
+                        self.board[x + 3][y + 3] == player_piece:
+                    self.is_won = True
+                    return True
+
+        return False
+
+    def is_game_draw(self):
+        self.draw = (not any(0 in sublist for sublist in self.board)) and not self.is_won
 
     def drop_piece(self, column, player):
         player_piece = 1 if player == 1 else 2
@@ -30,9 +66,13 @@ class ConnectFour:
             if self.board[i][column] == 0:
                 self.board[i][column] = player_piece
                 self.is_game_won(player_piece, i, column)
+                self.is_game_draw()
                 break
-
         print(self.board)
+        if self.is_won:
+            print(f"Player {player_piece} wins!!")
+        elif self.draw:
+            print("Game ends in a draw")
 
     def is_valid_column(self, column):
         return self.board[0][column] == 0
@@ -45,18 +85,41 @@ game = ConnectFour()
 
 turn = 0
 
-game_over = False
+pygame.init()
 
-while not game_over:
-    # Ask for player 1 input
-    if turn == 0:
-        col = int(input("Player 1 make your selection(0-6): "))
-        if game.is_valid_column(col):
-            game.drop_piece(col, PLAYER_ONE)
-        turn = 1
-    # Ask for player 2 input
-    else:
-        col = int(input("Player 2 make your selection(0-6): "))
-        if game.is_valid_column(col):
-            game.drop_piece(col, PLAYER_TWO)
-        turn = 0
+width = COLUMN_COUNT * SQUARE_SIZE
+height = (ROW_COUNT + 1) * SQUARE_SIZE
+
+size = (width, height)
+
+screen = pygame.display.set_mode(size)
+screen.fill((20, 52, 164))
+
+
+def draw_board():
+    for i in range(ROW_COUNT):
+        for j in range(COLUMN_COUNT):
+            pygame.draw.rect(screen, (211, 211, 211),
+                             ((j * SQUARE_SIZE), i * SQUARE_SIZE + SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE), 0, 50)
+
+
+draw_board()
+pygame.display.update()
+
+while not game.is_won and not game.draw:
+    for e in pygame.event.get():
+        if e.type == pygame.QUIT:
+            sys.exit()
+        elif e.type == pygame.MOUSEBUTTONDOWN:
+            # Ask for player 1 input
+            if turn == 0:
+                col = int(input("Player 1 make your selection(0-6): "))
+                if game.is_valid_column(col):
+                    game.drop_piece(col, PLAYER_ONE)
+                turn = 1
+            # Ask for player 2 input
+            else:
+                col = int(input("Player 2 make your selection(0-6): "))
+                if game.is_valid_column(col):
+                    game.drop_piece(col, PLAYER_TWO)
+                turn = 0
