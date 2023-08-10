@@ -1,12 +1,33 @@
 import numpy as np
 import pygame
 import sys
+import math
 
 PLAYER_ONE = 1
 PLAYER_TWO = 2
 ROW_COUNT = 6
 COLUMN_COUNT = 7
 SQUARE_SIZE = 100
+
+pygame.init()
+
+width = COLUMN_COUNT * SQUARE_SIZE
+height = (ROW_COUNT + 1) * SQUARE_SIZE
+
+size = (width, height)
+
+screen = pygame.display.set_mode(size)
+screen.fill((0, 0, 0))
+
+
+def draw_board():
+    for i in range(ROW_COUNT):
+        for j in range(COLUMN_COUNT):
+            pygame.draw.rect(screen, (0, 0, 200),
+                             ((j * SQUARE_SIZE), i * SQUARE_SIZE + SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+            pygame.draw.circle(screen, (0, 0, 0),
+                               (int(j * SQUARE_SIZE + SQUARE_SIZE / 2),
+                                int(i * SQUARE_SIZE + SQUARE_SIZE + SQUARE_SIZE / 2)), 45)
 
 
 class ConnectFour:
@@ -16,6 +37,19 @@ class ConnectFour:
 
     def __int__(self):
         pass
+
+    def update_board(self):
+        for i in range(ROW_COUNT):
+            for j in range(COLUMN_COUNT):
+                if self.board[i][j] == 1:
+                    pygame.draw.circle(screen, (255, 255, 0),
+                                       (int(j * SQUARE_SIZE + SQUARE_SIZE / 2),
+                                        int(i * SQUARE_SIZE + SQUARE_SIZE + SQUARE_SIZE / 2)), 45)
+                elif self.board[i][j] == 2:
+                    pygame.draw.circle(screen, (200, 0, 0),
+                                       (int(j * SQUARE_SIZE + SQUARE_SIZE / 2),
+                                        int(i * SQUARE_SIZE + SQUARE_SIZE + SQUARE_SIZE / 2)), 45)
+                pygame.display.update()
 
     # noinspection PyArgumentList
     def is_game_won(self, player_piece):
@@ -65,7 +99,8 @@ class ConnectFour:
         for i in reversed(range(len(self.board))):
             if self.board[i][column] == 0:
                 self.board[i][column] = player_piece
-                self.is_game_won(player_piece, i, column)
+                self.update_board()
+                self.is_game_won(player_piece)
                 self.is_game_draw()
                 break
         print(self.board)
@@ -85,24 +120,6 @@ game = ConnectFour()
 
 turn = 0
 
-pygame.init()
-
-width = COLUMN_COUNT * SQUARE_SIZE
-height = (ROW_COUNT + 1) * SQUARE_SIZE
-
-size = (width, height)
-
-screen = pygame.display.set_mode(size)
-screen.fill((20, 52, 164))
-
-
-def draw_board():
-    for i in range(ROW_COUNT):
-        for j in range(COLUMN_COUNT):
-            pygame.draw.rect(screen, (211, 211, 211),
-                             ((j * SQUARE_SIZE), i * SQUARE_SIZE + SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE), 0, 50)
-
-
 draw_board()
 pygame.display.update()
 
@@ -111,15 +128,18 @@ while not game.is_won and not game.draw:
         if e.type == pygame.QUIT:
             sys.exit()
         elif e.type == pygame.MOUSEBUTTONDOWN:
+            position = e.pos
+            col = math.floor(position[0] / SQUARE_SIZE)
+            print(col)
             # Ask for player 1 input
             if turn == 0:
-                col = int(input("Player 1 make your selection(0-6): "))
+                # column = int(input("Player 1 make your selection(0-6): "))
                 if game.is_valid_column(col):
                     game.drop_piece(col, PLAYER_ONE)
                 turn = 1
             # Ask for player 2 input
             else:
-                col = int(input("Player 2 make your selection(0-6): "))
+                # column = int(input("Player 2 make your selection(0-6): "))
                 if game.is_valid_column(col):
                     game.drop_piece(col, PLAYER_TWO)
                 turn = 0
