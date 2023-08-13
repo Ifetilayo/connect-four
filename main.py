@@ -103,7 +103,6 @@ class ConnectFour:
                 self.is_game_won(player_piece)
                 self.is_game_draw()
                 break
-        print(self.board)
         if self.is_won:
             print(f"Player {player_piece} wins!!")
         elif self.draw:
@@ -130,7 +129,6 @@ while not game.is_won and not game.draw:
         elif e.type == pygame.MOUSEBUTTONDOWN:
             position = e.pos
             col = math.floor(position[0] / SQUARE_SIZE)
-            print(col)
             # Ask for player 1 input
             if turn == 0:
                 # column = int(input("Player 1 make your selection(0-6): "))
